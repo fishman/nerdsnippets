@@ -79,7 +79,7 @@ function! s:Snippet.stringForPrompt()
     endif
 endfunction
 "}}}1
-
+" ExpandSnippet {{{1
 function! NERDSnippets_ExpandSnippet()
     let snippet_name = substitute(getline('.')[:(col('.')-2)],'\zs.*\W\ze\w*$','','g')
     let snippet = s:snippetFor(snippet_name)
@@ -92,7 +92,8 @@ function! NERDSnippets_ExpandSnippet()
     endif
     return snippet
 endfunction
-
+" }}}1
+" PreExpand {{{1
 function! NERDSnippets_PreExpand()
     let b:NERDSnippets_old_format_options = &fo
     setl fo-=t
@@ -101,13 +102,14 @@ function! NERDSnippets_PreExpand()
     setl fo-=a
     setl fo-=n
 endfunction
-
+"}}}1
+" PostExpand {{{1
 function! NERDSnippets_PostExpand()
     let &l:fo = b:NERDSnippets_old_format_options
 endfunction
+"}}}1
 
-"jump to the next marker, remove the delimiters and select the text inside in
-"select mode
+"jump to the next marker, remove the delimiters and select the text inside in "select mode {{{1
 "
 "if no markers are found, a <tab> may be inserted into the text
 function! NERDSnippets_SwitchRegion(allowAppend)
@@ -147,10 +149,11 @@ function! NERDSnippets_SwitchRegion(allowAppend)
         return "\<ESC>l"
     endtry
 endfunction
+"}}}1
 
 "jump the cursor to the start of the next marker and return an array of the
 "for [start_column, end_column], where start_column points to the start of
-"<+ and end_column points to the start of +>
+"<+ and end_column points to the start of +> {{{1
 function! s:nextMarker()
     let start = searchpos('\V'.s:start.'\.\{-\}'.s:end, 'c')[1]
     if start == 0
@@ -177,10 +180,11 @@ function! s:nextMarker()
     endwhile
     throw "NERDSnippets.MalformedMarkersError"
 endfunction
+" }}}1
 
 "asks the user to select a snippet from the given list
 "
-"returns the body of the chosen snippet
+"returns the body of the chosen snippet {{{1
 function! s:chooseSnippet(snippets)
     "build the dialog/choice list
     let prompt = ""
@@ -210,11 +214,12 @@ function! s:chooseSnippet(snippets)
 
     return a:snippets[choice-1].expansion
 endfunction
+"}}}1
 
 "get a snippet for the given keyword, if multiple snippets are found then prompt
 "the user to choose.
 "
-"if no snippets are found, return ''
+"if no snippets are found, return '' {{{1
 function! s:snippetFor(keyword)
     let snippets = []
     if has_key(s:snippets,&ft)
@@ -236,6 +241,7 @@ function! s:snippetFor(keyword)
 
     return ''
 endfunction
+"}}}1
 
 "removes a set of markers from the current cursor postion
 "
@@ -244,7 +250,7 @@ endfunction
 
 "into this
 "
-"  foo foobar foo
+"  foo foobar foo {{{1
 function! s:removeMarkers()
     try
         let marker = s:nextMarker()
@@ -264,8 +270,9 @@ function! s:removeMarkers()
     catch /NERDSnippets.NoMarkersFoundError/
     endtry
 endfunction
+"}}}1
 
-"add a new snippet for the given filetype and keyword
+"add a new snippet for the given filetype and keyword {{{1
 function! s:addSnippet(filetype, keyword, expansion, ...)
     if !has_key(s:snippets, a:filetype)
         let s:snippets[a:filetype] = {}
@@ -284,17 +291,19 @@ function! s:addSnippet(filetype, keyword, expansion, ...)
 
     call add(s:snippets[a:filetype][a:keyword], newSnippet)
 endfunction
+"}}}1
 
-"remove all snippets
+"remove all snippets {{{1
 function! NERDSnippetsReset()
     let s:snippets = {}
     let s:snippets['_'] = {}
 endfunction
+"}}}1
 
 
 "Extract snippets from the given directory. The snippet filetype, keyword, and
 "possibly name, are all inferred from the path of the .snippet files relative
-"to a:dir.
+"to a:dir. {{{1
 function! NERDSnippetsFromDirectory(dir)
     let snippetFiles = split(globpath(expand(a:dir), '**/*.snippet'), '\n')
     for fullpath in snippetFiles
@@ -309,11 +318,12 @@ function! NERDSnippetsFromDirectory(dir)
         call s:extractSnippetFor(fullpath, filetype, keyword)
     endfor
 endfunction
+"}}}1
 
 "Extract snippets from the given directory for the given filetype.
 "
 "The snippet keywords (and possibly names) are interred from the path of the
-".snippet files relative to a:dir
+".snippet files relative to a:dir {{{1
 function! NERDSnippetsFromDirectoryForFiletype(dir, filetype)
     let snippetFiles = split(globpath(expand(a:dir), '**/*.snippet'), '\n')
     for i in snippetFiles
@@ -328,6 +338,7 @@ function! NERDSnippetsFromDirectoryForFiletype(dir, filetype)
         call s:extractSnippetFor(fullpath, a:filetype, tail)
     endfor
 endfunction
+"}}}1
 
 "create a snippet from the given file
 "
@@ -335,7 +346,7 @@ endfunction
 "fullpath: full path to snippet file
 "filetype: the filetype for the new snippet
 "tail: the last part of the path containing the keyword and possibly name. eg
-" '/class.snippet'   or  '/class/with_constructor.snippet'
+" '/class.snippet'   or  '/class/with_constructor.snippet' {{{1
 function! s:extractSnippetFor(fullpath, filetype, tail)
     let keyword = ""
     let name = ""
@@ -354,9 +365,10 @@ function! s:extractSnippetFor(fullpath, filetype, tail)
 
     call s:addSnippet(a:filetype, keyword, snippetContent, name)
 endfunction
+"}}}1
 
 
-"Extract and munge the body of the snippet from the given file.
+"Extract and munge the body of the snippet from the given file. {{{1
 function! s:parseSnippetFile(path)
     try
         let lines = readfile(a:path)
@@ -388,6 +400,7 @@ function! s:parseSnippetFile(path)
 
     return join(lines, '')
 endfunction
+"}}}1
 
 "some global functions that are handy inside snippet files {{{1
 function! NS_prompt(varname, prompt, default)
