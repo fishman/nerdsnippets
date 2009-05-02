@@ -43,9 +43,9 @@ let s:snippets = {}
 let s:snippets['_'] = {}
 
 function! s:enableMaps()
-    exec "inoremap ".g:NERDSnippets_key." <c-o>:call NERDSnippets_PreExpand()<cr><c-r>=NERDSnippets_ExpandSnippet()<cr><c-o>:call NERDSnippets_PostExpand()<cr><c-g>u<c-r>=NERDSnippets_SwitchRegion(1)<cr>"
-    exec "nnoremap ".g:NERDSnippets_key." i<c-g>u<c-r>=NERDSnippets_SwitchRegion(0)<cr>"
-    exec "snoremap ".g:NERDSnippets_key." <esc>i<c-g>u<c-r>=NERDSnippets_SwitchRegion(0)<cr>"
+	exec "inoremap ".g:NERDSnippets_key." <c-o>:call NERDSnippets_PreExpand()<cr><c-r>=NERDSnippets_ExpandSnippet()<cr><c-o>:call NERDSnippets_PostExpand()<cr><c-g>u<c-r>=NERDSnippets_SwitchRegion(1)<cr>"
+	exec "nnoremap ".g:NERDSnippets_key." i<c-g>u<c-r>=NERDSnippets_SwitchRegion(0)<cr>"
+	exec "snoremap ".g:NERDSnippets_key." <esc>i<c-g>u<c-r>=NERDSnippets_SwitchRegion(0)<cr>"
 endfunction
 command! -nargs=0 NERDSnippetsEnable call <SID>enableMaps()
 call s:enableMaps()
@@ -79,14 +79,16 @@ function! s:Snippet.stringForPrompt()
     endif
 endfunction
 "}}}1
+
 " ExpandSnippet {{{1
 function! NERDSnippets_ExpandSnippet()
     let snippet_name = substitute(getline('.')[:(col('.')-2)],'\zs.*\W\ze\w*$','','g')
     let snippet = s:snippetFor(snippet_name)
     if snippet != ''
+		let s:snippet = snippet
         let s:appendTab = 0
         let s:topOfSnippet = line('.')
-        let snippet = "\<c-o>ciw" . snippet
+        let snippet = "\<c-o>ciw" . s:ExpandSnippet(snippet_name)
     else
         let s:appendTab = 1
     endif
@@ -429,6 +431,106 @@ function! NS_underscore(s)
 endfunction
 "}}}
 " snipmate based stuff{{{1
+
+fun s:ExpandSnippet(trigger)
+	let col = col('.') - len(a:trigger)
+	let lnum = line('.')
+
+	call s:ProcessSnippet()
+	if s:snippet == ''
+		return unl s:snippet " Avoid an error if the snippet is now empty
+	endif
+
+	let snip = split(substitute(s:snippet, '$\d\|${\d.\{-}}', '', 'g'), "\n", 1)
+
+	let line = getline(lnum)
+	let afterCursor = strpart(line, col - 1)
+	if afterCursor != "\t" && afterCursor != ' '
+		let line = strpart(line, 0, col - 1)
+		let snip[-1] .= afterCursor
+	else
+		let afterCursor = ''
+		" For some reason the cursor needs to move one right after this
+		if line != '' && col == 1 && &ve !~ 'all\|onemore'
+			let col += 1
+		endif
+	endif
+
+	call setline(lnum, line.snip[0])
+
+	" Autoindent snippet according to previous indentation
+	let indent = matchend(line, '^.\{-}\ze\(\S\|$\)') + 1
+	call append(lnum, map(snip[1:], "'".strpart(line, 0, indent - 1)."'.v:val"))
+
+	if exists('s:snipPos') && stridx(s:snippet, '${1') != -1
+		if exists('s:update')
+			call s:UpdateSnip(len(snip[-1]) - len(afterCursor))
+			call s:UpdatePlaceholderTabStops()
+		else
+			call s:UpdateTabStops(len(snip) - 1, len(snip[-1]) - len(afterCursor))
+		endif
+	endif
+
+	let snipLen = s:BuildTabStops(lnum, col - indent, indent)
+	unl s:snippet
+
+	if snipLen
+		if exists('s:snipLen')
+			let s:snipLen += snipLen | let s:curPos += 1
+		else
+			let s:snipLen = snipLen | let s:curPos = 0
+		endif
+		let s:endSnip     = s:snipPos[s:curPos][1]
+		let s:endSnipLine = s:snipPos[s:curPos][0]
+
+		call cursor(s:snipPos[s:curPos][0], s:snipPos[s:curPos][1])
+		let s:prevLen = [line('$'), col('$')]
+		if s:snipPos[s:curPos][2] != -1 | return s:SelectWord() | endif
+	else
+		if !exists('s:snipLen') | unl s:snipPos | endif
+		" Place cursor at end of snippet if no tab stop is given
+		let newlines = len(snip) - 1
+		call cursor(lnum + newlines, indent + len(snip[-1]) - len(afterCursor)
+					\ + (newlines ? 0: col - 1))
+	endif
+	return ''
+endf
+
+fun s:ProcessSnippet()
+	" Evaluate eval (`...`) expressions.
+	" Using a loop here instead of a regex fixes a bug with nested "\=".
+	if stridx(s:snippet, '`') != -1
+		wh match(s:snippet, '`.\{-}`') != -1
+			let s:snippet = substitute(s:snippet, '`.\{-}`',
+						\ substitute(eval(matchstr(s:snippet, '`\zs.\{-}\ze`')),
+						\ "\n\\%$", '', ''), '')
+		endw
+		let s:snippet = substitute(s:snippet, "\r", "\n", 'g')
+	endif
+
+	" Place all text after a colon in a tab stop after the tab stop
+	" (e.g. "${#:foo}" becomes "${:foo}foo").
+	" This helps tell the position of the tab stops later.
+	let s:snippet = substitute(s:snippet, '${\d:\(.\{-}\)}', '&\1', 'g')
+
+	" Update the s:snippet so that all the $# become
+	" the text after the colon in their associated ${#}.
+	" (e.g. "${1:foo}" turns all "$1"'s into "foo")
+	let i = 1
+	wh stridx(s:snippet, '${'.i) != -1
+		let s = matchstr(s:snippet, '${'.i.':\zs.\{-}\ze}')
+		if s != ''
+			let s:snippet = substitute(s:snippet, '$'.i, '&'.s, 'g')
+		endif
+		let i += 1
+	endw
+
+	if &et " Expand tabs to spaces if 'expandtab' is set.
+		let s:snippet = substitute(s:snippet, '\t',
+						\ repeat(' ', &sts ? &sts : &sw), 'g')
+	endif
+endf
+
 " removesnippet {{{2
 fun s:RemoveSnippet()
 	unlet s:snipPos s:curPos s:snipLen s:endSnip s:endSnipLine s:prevLen
