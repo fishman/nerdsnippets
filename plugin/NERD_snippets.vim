@@ -827,4 +827,4 @@ endf
 " }}}2
 " }}}1
 
-" vim: set ft=vim ff=unix fdm=marker :
+" vim: set ft=vim ff=unix fdm=marker sts=4 sw=4 et:
