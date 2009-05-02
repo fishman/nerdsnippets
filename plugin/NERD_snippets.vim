@@ -405,10 +405,12 @@ endfunction
 " snipmate based stuff{{{1
 
 fun s:ExpandSnippet(trigger)
+    let col = col('.') - len(a:trigger)
 	" remove the trigger from the input
+	" this must be after the col getting otherwise indented snippets
+	" will lose the first indentlevel for the mark => bad
 	silent exe 's/'.escape(a:trigger, '.^$/\*[]').'\%#//'
 
-	let col = col('.') - len(a:trigger)
 	let lnum = line('.')
 
 	call s:ProcessSnippet()
