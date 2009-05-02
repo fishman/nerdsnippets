@@ -124,13 +124,13 @@ endfunction
 "jump the cursor to the start of the next marker and return an array of the
 "for [start_column, end_column], where start_column points to the start of
 "<+ and end_column points to the start of +> {{{1
-function! s:nextMarker()
-    let start = searchpos('\V'.s:start.'\.\{-\}'.s:end, 'c')[1]
-    if start == 0
+function! s:nextMarker(snippet,index)
+    let start = match(a:snippet, '\V'.s:start.a:index.'\.\{-\}'.s:end)
+    if start == -1
         throw "NERDSnippets.NoMarkersFoundError"
     endif
 
-    let l = getline(".")
+    let l = a:snippet
     let balance = 0
     let i = start-1
     while i < strlen(l)
@@ -151,6 +151,18 @@ function! s:nextMarker()
     throw "NERDSnippets.MalformedMarkersError"
 endfunction
 " }}}1
+
+function! s:getAllMarker(snippet)
+    let i = 1
+    while i
+        try
+            call s:nextMarker(a:snippet, i)
+            let i += 1
+        catch /NERDSnippets.NoMarkersFoundError/
+            break
+        endtry
+    endwhile
+endfunction
 
 "asks the user to select a snippet from the given list
 "
