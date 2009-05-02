@@ -43,7 +43,7 @@ let s:snippets = {}
 let s:snippets['_'] = {}
 
 function! s:enableMaps()
-    exec "inoremap ".g:NERDSnippets_key." <c-r>=NERDSnippets_Trigger()<CR>"
+    exec "inoremap <silent>".g:NERDSnippets_key." <c-r>=NERDSnippets_Trigger()<CR>"
 	exec "nnoremap ".g:NERDSnippets_key." i<c-g>u<c-r>=NERDSnippets_SwitchRegion(0)<cr>"
 	exec "snoremap ".g:NERDSnippets_key." <esc>i<c-g>u<c-r>=NERDSnippets_SwitchRegion(0)<cr>"
 endfunction
