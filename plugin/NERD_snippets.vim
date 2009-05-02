@@ -109,43 +109,15 @@ endfunction
 "
 "if no markers are found, a <tab> may be inserted into the text
 function! NERDSnippets_SwitchRegion(allowAppend)
-	if exists('s:snipPos') | return s:JumpTabStop() | endif
-	return ''
-    if s:topOfSnippet != -1
-        call cursor(s:topOfSnippet,1)
-        let s:topOfSnippet = -1
-    endif
-
-    try
-        let markerPos = s:nextMarker()
-        let markersEmpty = stridx(getline("."), s:start.s:end) == markerPos[0]-1
-
-        let removedMarkers = 0
-        if s:removeMarkers()
-            let markerPos[1] -= (strlen(s:start) + strlen(s:end))
-            let removedMarkers = 1
+    if exists('s:snipPos') && s:endSnip == s:snipPos[s:curPos][1]+s:snipPos[s:curPos][2]
+	    return s:JumpTabStop()
+    elseif s:appendTab && a:allowAppend
+        if g:NERDSnippets_key == "<tab>"
+            return "\<tab>"
         endif
-
-        call cursor(line("."), markerPos[0])
-        normal! v
-        call cursor(line("."), markerPos[1] + strlen(s:end) - 1 + (&selection == "exclusive"))
-
-        if removedMarkers && markersEmpty
-            return "\<right>"
-        else
-            return "\<c-\>\<c-n>gvo\<c-g>"
-        endif
-
-    catch /NERDSnippets.NoMarkersFoundError/
-        if s:appendTab && a:allowAppend
-            if g:NERDSnippets_key == "<tab>"
-                return "\<tab>"
-            endif
-        endif
-        "we were called from normal mode so return to normal and move the
-        "cursor forward again
+    else
         return "\<ESC>l"
-    endtry
+	endif
 endfunction
 "}}}1
 
