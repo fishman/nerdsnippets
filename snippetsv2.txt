@@ -1,0 +1,50 @@
+== How it works
+* storing the snippet
+1. we store the snippets in a format ${1:...}
+2. snippet file is parsed and then stored in a dictionary for the lookup
+
+* expanding the snippets
+1. when a keyword is found we load the apropriate snippet into the memory
+2. once its loaded we parse the ${1:...} tab triggers in a list with:
+  - line
+  - column
+  - placeholder text if existant
+  - list corresponding expansions denoted by $1
+
+  ( 
+   there are 2 ways of handling nested snippets:
+
+   1. instead of the placeholder text we hold a another list with
+      a) placeholder and
+      b) another trigger list
+
+   2. we parse it as is and add 
+      a) a flag as to whether we are in the placeholder context and
+      b) the index of the tab trigger in which's context we are
+  )
+3. add CursorMovedI and InsertEnter triggers
+4. implement function that updates all triggers for a specific line
+( optimal way of updating triggers )
+
+* ways to update snippet positions
+1. always update the whole snippet.
+  a) we will store the snippet as plaintext
+  b) when we enter text on a placeholder we will remember that we are on the placeholder
+    that way it should be easy for us to update the plaintext accordingly
+  c) the whole snippet is getting inserted each time you type something
+  d) store the current cursor position for putting the cursor back in place when where
+    it belongs
+
+  this kind of editing makes it unnecesarry to track line numbers and makes
+  it easier to update the modified places
+
+2. only update part of the snippet
+  - we will need to detect the currently changed text for 
+  a) once the snippet is parsed store it as list for the newlines
+  b) 
+
+
+== Brainstorming on the new snippet engine
+
+- tab triggers are stored in a fifo queue
+
