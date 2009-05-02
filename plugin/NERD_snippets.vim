@@ -44,8 +44,8 @@ let s:snippets['_'] = {}
 
 function! s:enableMaps()
     exec "inoremap <silent>".g:NERDSnippets_key." <c-r>=NERDSnippets_Trigger()<CR>"
-	exec "nnoremap ".g:NERDSnippets_key." i<c-g>u<c-r>=NERDSnippets_SwitchRegion(0)<cr>"
-	exec "snoremap ".g:NERDSnippets_key." <esc>i<c-g>u<c-r>=NERDSnippets_SwitchRegion(0)<cr>"
+	exec "nnoremap <silent>".g:NERDSnippets_key." i<c-g>u<c-r>=NERDSnippets_SwitchRegion(0)<cr>"
+	exec "snoremap <silent>".g:NERDSnippets_key." <esc>i<c-g>u<c-r>=NERDSnippets_SwitchRegion(0)<cr>"
 endfunction
 command! -nargs=0 NERDSnippetsEnable call <SID>enableMaps()
 call s:enableMaps()
