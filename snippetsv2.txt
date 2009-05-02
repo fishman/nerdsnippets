@@ -21,6 +21,10 @@
    2. we parse it as is and add 
       a) a flag as to whether we are in the placeholder context and
       b) the index of the tab trigger in which's context we are
+
+   3. we parse it as is and don't add anything
+      a) when we deleted anything on a position of another trigger
+        delete the trigger
   )
 3. add CursorMovedI and InsertEnter triggers
 4. implement function that updates all triggers for a specific line
@@ -34,15 +38,19 @@
   c) the whole snippet is getting inserted each time you type something
   d) store the current cursor position for putting the cursor back in place when where
     it belongs
+  e) when we update part of the string update the snippet thne detect the line to replace
+    and ultimately replace it
 
   this kind of editing makes it unnecesarry to track line numbers and makes
   it easier to update the modified places
+
 
 2. only update part of the snippet
   - we will need to detect the currently changed text for 
   a) once the snippet is parsed store it as list for the newlines
   b) 
 
+  this way we will have problems tracking snippets that have  multiline triggers
 
 == Brainstorming on the new snippet engine
 
