@@ -132,7 +132,7 @@ function! s:nextMarker(snippet,index)
 
     let l = a:snippet
     let balance = 0
-    let i = start-1
+    let i = start
     while i < strlen(l)
         if strpart(l, i, strlen(s:start)) == s:start
             let balance += 1
@@ -154,14 +154,18 @@ endfunction
 
 function! s:getAllMarker(snippet)
     let i = 1
+    let markers = []
     while i
         try
-            call s:nextMarker(a:snippet, i)
+            let marker = s:nextMarker(a:snippet, i)
+            call add(markers, marker)
             let i += 1
         catch /NERDSnippets.NoMarkersFoundError/
             break
         endtry
     endwhile
+
+    return markers
 endfunction
 
 "asks the user to select a snippet from the given list
