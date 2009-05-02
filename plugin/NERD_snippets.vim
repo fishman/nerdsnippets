@@ -420,6 +420,9 @@ fun s:ExpandSnippet(trigger)
         return unl s:snippet " Avoid an error if the snippet is now empty
     endif
 
+
+    " at this point all trigger contents have been duplicated
+    " ie. the c for snippet for (${2:i}i = 0; $2i < ${1:count}count; $2i${3:++}++)
     let snip = split(substitute(s:snippet, '$\d\|${\d.\{-}}', '', 'g'), "\n", 1)
 
     let line = getline(lnum)
