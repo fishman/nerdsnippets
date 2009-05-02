@@ -378,29 +378,7 @@ function! s:parseSnippetFile(path)
         throw "NERDSnippet.ScrewedSnippetPathError " . a:path
     endtry
 
-    let i = 0
-    while i < len(lines)
-        "add \<CR> to the end of the lines, but not the last line
-        if i < len(lines)-1
-            let lines[i] = substitute(lines[i], '$', '\1' . "\<CR>", "")
-        endif
-
-        "remove leading whitespace
-        let lines[i] = substitute(lines[i], '^\s*', '', '')
-
-        "make \<C-R>= function in the templates
-        let lines[i] = substitute(lines[i], '\c\\<c-r>=', "\<c-r>=", "g")
-
-        "make \<C-O>= function in the templates
-        let lines[i] = substitute(lines[i], '\c\\<c-o>', "\<c-o>", "g")
-
-        "make \<CR> function in templates
-        let lines[i] = substitute(lines[i], '\c\\<cr>', "\<cr>", "g")
-
-        let i += 1
-    endwhile
-
-    return join(lines, '')
+    return join(lines, "\n")
 endfunction
 "}}}1
 
