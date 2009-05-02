@@ -109,7 +109,7 @@ endfunction
 "
 "if no markers are found, a <tab> may be inserted into the text
 function! NERDSnippets_SwitchRegion(allowAppend)
-    if exists('s:snipPos') && s:endSnip == s:snipPos[s:curPos][1]+s:snipPos[s:curPos][2]
+    if exists('s:snipPos')
 	    return s:JumpTabStop()
     elseif s:appendTab && a:allowAppend
         if g:NERDSnippets_key == "<tab>"
