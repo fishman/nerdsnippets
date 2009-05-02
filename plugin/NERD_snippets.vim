@@ -26,12 +26,12 @@ if !exists("g:NERDSnippets_key")
 endif
 
 if !exists("g:NERDSnippets_marker_start")
-    let g:NERDSnippets_marker_start = '<+'
+    let g:NERDSnippets_marker_start = '${'
 endif
 let s:start = g:NERDSnippets_marker_start
 
 if !exists("g:NERDSnippets_marker_end")
-    let g:NERDSnippets_marker_end = '+>'
+    let g:NERDSnippets_marker_end = '}'
 endif
 let s:end = g:NERDSnippets_marker_end
 
