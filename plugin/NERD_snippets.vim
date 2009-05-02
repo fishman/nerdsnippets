@@ -88,7 +88,7 @@ function! NERDSnippets_ExpandSnippet()
 		let s:snippet = snippet
         let s:appendTab = 0
         let s:topOfSnippet = line('.')
-        let snippet = "\<c-o>ciw" . s:ExpandSnippet(snippet_name)
+        let snippet = s:ExpandSnippet(snippet_name)
     else
         let s:appendTab = 1
     endif
@@ -411,6 +411,9 @@ endfunction
 " snipmate based stuff{{{1
 
 fun s:ExpandSnippet(trigger)
+	" remove the trigger from the input
+	silent exe 's/'.escape(a:trigger, '.^$/\*[]').'\%#//'
+
 	let col = col('.') - len(a:trigger)
 	let lnum = line('.')
 
