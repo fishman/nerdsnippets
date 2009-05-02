@@ -396,71 +396,71 @@ endfunction
 
 fun s:ExpandSnippet(trigger)
     let col = col('.') - len(a:trigger)
-	" remove the trigger from the input
-	" this must be after the col getting otherwise indented snippets
-	" will lose the first indentlevel for the mark => bad
-	silent exe 's/'.escape(a:trigger, '.^$/\*[]').'\%#//'
+    " remove the trigger from the input
+    " this must be after the col getting otherwise indented snippets
+    " will lose the first indentlevel for the mark => bad
+    silent exe 's/'.escape(a:trigger, '.^$/\*[]').'\%#//'
 
-	let lnum = line('.')
+    let lnum = line('.')
 
-	call s:ProcessSnippet()
-	if s:snippet == ''
-		return unl s:snippet " Avoid an error if the snippet is now empty
-	endif
+    call s:ProcessSnippet()
+    if s:snippet == ''
+        return unl s:snippet " Avoid an error if the snippet is now empty
+    endif
 
-	let snip = split(substitute(s:snippet, '$\d\|${\d.\{-}}', '', 'g'), "\n", 1)
+    let snip = split(substitute(s:snippet, '$\d\|${\d.\{-}}', '', 'g'), "\n", 1)
 
-	let line = getline(lnum)
-	let afterCursor = strpart(line, col - 1)
-	if afterCursor != "\t" && afterCursor != ' '
-		let line = strpart(line, 0, col - 1)
-		let snip[-1] .= afterCursor
-	else
-		let afterCursor = ''
-		" For some reason the cursor needs to move one right after this
-		if line != '' && col == 1 && &ve !~ 'all\|onemore'
-			let col += 1
-		endif
-	endif
+    let line = getline(lnum)
+    let afterCursor = strpart(line, col - 1)
+    if afterCursor != "\t" && afterCursor != ' '
+        let line = strpart(line, 0, col - 1)
+        let snip[-1] .= afterCursor
+    else
+        let afterCursor = ''
+        " For some reason the cursor needs to move one right after this
+        if line != '' && col == 1 && &ve !~ 'all\|onemore'
+            let col += 1
+        endif
+    endif
 
-	call setline(lnum, line.snip[0])
+    call setline(lnum, line.snip[0])
 
-	" Autoindent snippet according to previous indentation
-	let indent = matchend(line, '^.\{-}\ze\(\S\|$\)') + 1
-	call append(lnum, map(snip[1:], "'".strpart(line, 0, indent - 1)."'.v:val"))
+    " Autoindent snippet according to previous indentation
+    let indent = matchend(line, '^.\{-}\ze\(\S\|$\)') + 1
+    call append(lnum, map(snip[1:], "'".strpart(line, 0, indent - 1)."'.v:val"))
 
-	if exists('s:snipPos') && stridx(s:snippet, '${1') != -1
-		if exists('s:update')
-			call s:UpdateSnip(len(snip[-1]) - len(afterCursor))
-			call s:UpdatePlaceholderTabStops()
-		else
-			call s:UpdateTabStops(len(snip) - 1, len(snip[-1]) - len(afterCursor))
-		endif
-	endif
+    if exists('s:snipPos') && stridx(s:snippet, '${1') != -1
+        if exists('s:update')
+            call s:UpdateSnip(len(snip[-1]) - len(afterCursor))
+            call s:UpdatePlaceholderTabStops()
+        else
+            call s:UpdateTabStops(len(snip) - 1, len(snip[-1]) - len(afterCursor))
+        endif
+    endif
 
-	let snipLen = s:BuildTabStops(lnum, col - indent, indent)
-	unl s:snippet
+    let snipLen = s:BuildTabStops(lnum, col - indent, indent)
+    unl s:snippet
 
-	if snipLen
-		if exists('s:snipLen')
-			let s:snipLen += snipLen | let s:curPos += 1
-		else
-			let s:snipLen = snipLen | let s:curPos = 0
-		endif
-		let s:endSnip     = s:snipPos[s:curPos][1]
-		let s:endSnipLine = s:snipPos[s:curPos][0]
+    if snipLen
+        if exists('s:snipLen')
+            let s:snipLen += snipLen | let s:curPos += 1
+        else
+            let s:snipLen = snipLen | let s:curPos = 0
+        endif
+        let s:endSnip     = s:snipPos[s:curPos][1]
+        let s:endSnipLine = s:snipPos[s:curPos][0]
 
-		call cursor(s:snipPos[s:curPos][0], s:snipPos[s:curPos][1])
-		let s:prevLen = [line('$'), col('$')]
-		if s:snipPos[s:curPos][2] != -1 | return s:SelectWord() | endif
-	else
-		if !exists('s:snipLen') | unl s:snipPos | endif
-		" Place cursor at end of snippet if no tab stop is given
-		let newlines = len(snip) - 1
-		call cursor(lnum + newlines, indent + len(snip[-1]) - len(afterCursor)
-					\ + (newlines ? 0: col - 1))
-	endif
-	return ''
+        call cursor(s:snipPos[s:curPos][0], s:snipPos[s:curPos][1])
+        let s:prevLen = [line('$'), col('$')]
+        if s:snipPos[s:curPos][2] != -1 | return s:SelectWord() | endif
+    else
+        if !exists('s:snipLen') | unl s:snipPos | endif
+        " Place cursor at end of snippet if no tab stop is given
+        let newlines = len(snip) - 1
+        call cursor(lnum + newlines, indent + len(snip[-1]) - len(afterCursor)
+                    \ + (newlines ? 0: col - 1))
+    endif
+    return ''
 endf
 
 fun s:ProcessSnippet()
