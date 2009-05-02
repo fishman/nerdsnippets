@@ -109,6 +109,8 @@ endfunction
 "
 "if no markers are found, a <tab> may be inserted into the text
 function! NERDSnippets_SwitchRegion(allowAppend)
+	if exists('s:snipPos') | return s:JumpTabStop() | endif
+	return ''
     if s:topOfSnippet != -1
         call cursor(s:topOfSnippet,1)
         let s:topOfSnippet = -1
