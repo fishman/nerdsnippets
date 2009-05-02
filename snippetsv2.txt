@@ -70,4 +70,8 @@
 2. add current indent level to the beginning
 3. parse all triggers by line, assume that they are not multiline
 
-
+  * Handling the trigger update
+    - 3 hashs:
+      1. line, triggers - tells us whether a trigger exists in a specific line, contains a list of triggers for a line
+        this is a reverse lookup list
+      2. id, line, col, update only /* denotes whether the snippet is tab reachable or not*/, placeholder text
