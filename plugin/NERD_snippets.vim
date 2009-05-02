@@ -94,7 +94,7 @@ function! NERDSnippets_ExpandSnippet()
     let snippet_name = substitute(getline('.')[:(col('.')-2)],'\zs.*\W\ze\w*$','','g')
     let snippet = s:snippetFor(snippet_name)
     if snippet != ''
-		let s:snippet = snippet
+        let s:snippet = snippet
         let s:appendTab = 0
         let s:topOfSnippet = line('.')
         let snippet = s:ExpandSnippet(snippet_name)
