@@ -44,6 +44,11 @@
   this kind of editing makes it unnecesarry to track line numbers and makes
   it easier to update the modified places
 
+  caveats:
+  - we need to store the line of the snippet expansion.
+  - we will need to calculate the absolute position of the trigger in our snippet buffer
+  - col($)
+
 
 2. only update part of the snippet
   - we will need to detect the currently changed text for 
@@ -55,4 +60,14 @@
 == Brainstorming on the new snippet engine
 
 - tab triggers are stored in a fifo queue
+
+== First implementation
+
+- implement the snippet triggers line based
+- implement the multiple snippets by parsing all triggers of a line
+
+1. split snippet by line
+2. add current indent level to the beginning
+3. parse all triggers by line, assume that they are not multiline
+
 
