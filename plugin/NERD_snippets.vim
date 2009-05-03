@@ -334,6 +334,7 @@ function! s:ParseSnippet(trigger, snippet)
     " not yet split
     let markers = s:Marker.getAllMarker(a:snippet)
     let snippet = s:Marker.removeMarkers(a:snippet)
+    let snippet = s:Marker.removePlaceholder(snippet)
 
     " insert the snippet
     call setline (line, snippet)
@@ -364,6 +365,8 @@ endfunction
 
 " Marker class {{{1
 let s:Marker = {}
+" tempTabstops before you translate the snippet into a line based
+" list
 let s:Marker.tabstops = {}
 
 "get all marks for a given snippet
@@ -436,19 +439,19 @@ endfunction
 function! s:Marker.addTabstop(i, start, len)
     let s:Marker.tabstops[a:i] = [a:start, a:len]
     
-    " update the tabstops
-    call s:Marker.updateTabstops(a:i, a:start)
-endfunction
-
-function! s:Marker.updateTabstops(i, start)
     " get size of tabstop marker surrounding
     let len = strlen(s:start) + strlen(a:i) + 1 + strlen(s:end)
 
+    " update the tabstops
+    call s:Marker.updateTabstops(a:i, a:start, len)
+endfunction
+
+function! s:Marker.updateTabstops(i, start, len)
     for marker in keys(s:Marker.tabstops)
         " check if start position is greater the last modified
         " snippet and adjust it's position if so
         if s:Marker.tabstops[marker][0] > a:start
-            let s:Marker.tabstops[marker][0] -= len
+            let s:Marker.tabstops[marker][0] -= a:len
         endif
     endfor
 endfunction
@@ -464,7 +467,8 @@ endfunction
 function! s:Marker.removeMarkers(snippet)
     " first remove the markers that aren't triggers
     " like $1 $2 etc ...
-    let snip = substitute(a:snippet, '$\d', '', 'g')
+    " let snip = substitute(a:snippet, '$\d', '', 'g')
+    let snip = a:snippet
 
     let markers = s:Marker.getAllMarker(snip)
     let i = 1
@@ -480,6 +484,24 @@ function! s:Marker.removeMarkers(snippet)
     endwhile
 
     return split(snip, "\n", 1)
+endfunction
+
+function! s:Marker.removePlaceholder(snippet)
+    let snip = a:snippet
+
+    "iterate through tabstop counts and see if we got a 
+    "corresponding placeholder
+    for i in keys(s:Marker.tabstops)
+        let j = 0
+        for line in snip
+            let start = match(line, '$'.i)
+            let line = substitute(line, '$'.i, '', 'g')
+
+            let snip[j] = line
+            let j += 1
+        endfor
+    endfor
+    return snip
 endfunction
 "}}}1
 
