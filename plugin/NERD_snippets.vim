@@ -332,14 +332,14 @@ function! s:ParseSnippet(trigger, snippet)
     " for the mark generation we use the actual snippet
     " not yet split
     let markers = s:Marker.getAllMarker(a:snippet)
-    let snippet = s:Marker.removeMarkers(a:snippet)
+    let snippet = s:Marker.removeMarkers(snippet)
     let snippet = s:Marker.removePlaceholder(snippet)
 
     " insert the snippet
     call setline (line, snippet)
 
     " jump to first tabstop
-    call cursor(line, s:Marker.tabstops[1][0]-1)
+    call cursor(s:Marker.tabstops[4]['line'], s:Marker.tabstops[4]['col']-1)
     return ''
 endfunction
 
@@ -388,13 +388,13 @@ endfunction
 "jump the cursor to the start of the next marker and return an array of the
 "for [start_column, end_column], where start_column points to the start of
 "<+ and end_column points to the start of +> {{{1
-function! s:Marker.nextMarker(snippet,index)
-    let start = match(a:snippet, '\V'.s:start.a:index.'\.\{-\}'.s:end)
+function! s:Marker.nextMarker(line,index)
+    let start = match(a:line, '\V'.s:start.a:index.'\.\{-\}'.s:end)
     if start == -1
         throw "NERDSnippets.NoMarkersFoundError"
     endif
 
-    let l = a:snippet
+    let l = a:line
     let balance = 0
     let i = start
     while i < strlen(l)
@@ -415,7 +415,7 @@ function! s:Marker.nextMarker(snippet,index)
     throw "NERDSnippets.MalformedMarkersError"
 endfunction
 
-function! s:Marker.removeMarker(snippet, i, marker)
+function! s:Marker.removeMarker(snippet, lnum, i, marker)
     " length of the marker start
     let startlen = strlen(s:start) + strlen(a:i) + 1
     let endlen = strlen(s:end)
@@ -430,13 +430,13 @@ function! s:Marker.removeMarker(snippet, i, marker)
 
     
     " add tab stop to our list
-    call s:Marker.addTabstop(a:i, startOfBody, bodyLen)
+    call s:Marker.addTabstop(a:lnum, a:i, startOfBody, bodyLen)
 
     return snip
 endfunction
 
-function! s:Marker.addTabstop(i, start, len)
-    let s:Marker.tabstops[a:i] = [a:start, a:len]
+function! s:Marker.addTabstop(lnum, i, start, len)
+    let s:Marker.tabstops[a:i] = { 'line': a:lnum+1, 'col': a:start, 'end':a:len }
     
     " get size of tabstop marker surrounding
     let len = strlen(s:start) + strlen(a:i) + 1 + strlen(s:end)
@@ -449,8 +449,8 @@ function! s:Marker.updateTabstops(i, start, len)
     for marker in keys(s:Marker.tabstops)
         " check if start position is greater the last modified
         " snippet and adjust it's position if so
-        if s:Marker.tabstops[marker][0] > a:start
-            let s:Marker.tabstops[marker][0] -= a:len
+        if s:Marker.tabstops[marker]['col'] > a:start
+            let s:Marker.tabstops[marker]['col'] -= a:len
         endif
     endfor
 endfunction
@@ -464,25 +464,26 @@ endfunction
 "
 "  foo foobar foo {{{1
 function! s:Marker.removeMarkers(snippet)
-    " first remove the markers that aren't triggers
-    " like $1 $2 etc ...
-    " let snip = substitute(a:snippet, '$\d', '', 'g')
     let snip = a:snippet
 
-    let markers = s:Marker.getAllMarker(snip)
     let i = 1
-    let markers = []
-    while i
+    let lnum = match(snip, '\V'.s:start.i.'\.\{-\}'.s:end)
+    while lnum != -1
         try
-            let marker = s:Marker.nextMarker(snip, i)
-            let snip = s:Marker.removeMarker(snip, i, marker)
+            let marker = s:Marker.nextMarker(snip[lnum], i)
+            let snip[lnum] = s:Marker.removeMarker(snip[lnum], lnum, i, marker)
             let i += 1
+            let lnum = match(a:snippet, '\V'.s:start.i.'\.\{-\}'.s:end)
         catch /NERDSnippets.NoMarkersFoundError/
             break
         endtry
     endwhile
 
-    return split(snip, "\n", 1)
+    " currently all tabs are in one line
+    " we will extract the line numbers and update the 
+    " tabstops accordingly
+
+    return snip
 endfunction
 
 function! s:Marker.removePlaceholder(snippet)
@@ -496,6 +497,7 @@ function! s:Marker.removePlaceholder(snippet)
             let start = match(line, '$'.i)
             let line = substitute(line, '$'.i, '', 'g')
 
+            "TODO: we need to adjust tabstops 
             let snip[j] = line
             let j += 1
         endfor
