@@ -520,6 +520,7 @@ function! s:Marker.addRevlookup(lnum, index, istab)
             let lookupList = {'tab': [a:index], 'ph': []}
         else
             let lookupList = {'tab': [], 'ph': [a:index]}
+        endif
 
         let s:Marker.revlookup[a:lnum] = lookupList
     else
