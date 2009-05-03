@@ -99,7 +99,6 @@ function! NERDSnippets_ExpandSnippet()
         let s:topOfSnippet = line('.')
         let snippet = s:ParseSnippet(snippet_name, snippet)
         " let snippet = s:ExpandSnippet(snippet_name)
-        echomsg "blub" . snippet
     else
         let s:appendTab = 1
     endif
