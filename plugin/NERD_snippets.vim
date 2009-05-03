@@ -516,14 +516,14 @@ endfunction
 function! s:Marker.addRevlookup(lnum, index, istab)
     " get current list of tabstops per line
     if !exists('s:Marker.revlookup[a:lnum]')
-        if istab
+        if a:istab
             let lookupList = {'tab': [a:index], 'ph': []}
         else
             let lookupList = {'tab': [], 'ph': [a:index]}
 
         let s:Marker.revlookup[a:lnum] = lookupList
     else
-        if istab
+        if a:istab
             key = 'tab'
         else
             key = 'ph'
