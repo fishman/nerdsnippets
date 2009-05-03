@@ -72,6 +72,14 @@
 
   * Handling the trigger update
     - 3 hashs:
+      1. id, list of tab stops, list of completions
+      2. line, list of tab stops, list of ...
       1. line, triggers - tells us whether a trigger exists in a specific line, contains a list of triggers for a line
         this is a reverse lookup list
       2. id, line, col, update only /* denotes whether the snippet is tab reachable or not*/, placeholder text
+
+
+  * getting all marks
+    - because we wan't to balance the triggers we need to parse them before we split the lines
+    - then we get a list of newlines and convert the col only format to column + line
+    - then remove the tags and update the mark positions
