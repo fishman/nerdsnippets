@@ -364,9 +364,11 @@ endfunction
 
 " Marker class {{{1
 let s:Marker = {}
-" tempTabstops before you translate the snippet into a line based
-" list
+" tabstop in the snippet
 let s:Marker.tabstops = {}
+" reverse lookup list so we don't iterate like crazy
+" contains tabstops and placeholders in a line
+let s:Marker.revlookup = {}
 
 "get all marks for a given snippet
 function! s:Marker.getAllMarker(snippet)
@@ -438,6 +440,7 @@ endfunction
 function! s:Marker.addTabstop(lnum, i, start, len)
     let s:Marker.tabstops[a:i] = { 'line': a:lnum+1, 'col': a:start, 'end':a:len }
     
+    call s:Marker.addRevlookup(a:lnum, a:i, 1)
     " get size of tabstop marker surrounding
     let len = strlen(s:start) + strlen(a:i) + 1 + strlen(s:end)
 
@@ -504,6 +507,32 @@ function! s:Marker.removePlaceholder(snippet)
     endfor
     return snip
 endfunction
+
+" can be tabstop or placeholder
+" specified by istab
+" this builds the reverse lookup table used for updating tabs
+" inserts the index of the tabtrigger or placeholder in their
+" corresponding list
+function! s:Marker.addRevlookup(lnum, index, istab)
+    " get current list of tabstops per line
+    if !exists('s:Marker.revlookup[a:lnum]')
+        if istab
+            let lookupList = {'tab': [a:index], 'ph': []}
+        else
+            let lookupList = {'tab': [], 'ph': [a:index]}
+
+        let s:Marker.revlookup[a:lnum] = lookupList
+    else
+        if istab
+            key = 'tab'
+        else
+            key = 'ph'
+        endif
+        let tabList = s:Marker.revlookup[a:lnum][key]
+        let s:Marker.revlookup[a:lnum][key] = add(tabList, a:index)
+    endif
+endfunction
+
 "}}}1
 
 " vim: set ft=vim ff=unix fdm=marker sts=4 sw=4 et:
