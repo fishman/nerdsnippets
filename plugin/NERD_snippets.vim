@@ -335,7 +335,11 @@ function! s:ParseSnippet(trigger, snippet)
     let markers = s:Marker.getAllMarker(a:snippet)
     let snippet = s:Marker.removeMarkers(a:snippet)
 
+    " insert the snippet
     call setline (line, snippet)
+
+    " jump to first tabstop
+    call cursor(line, s:Marker.tabstops[1][0]-1)
     return ''
 endfunction
 
@@ -360,6 +364,7 @@ endfunction
 
 " Marker class {{{1
 let s:Marker = {}
+let s:Marker.tabstops = {}
 
 "get all marks for a given snippet
 function! s:Marker.getAllMarker(snippet)
@@ -409,14 +414,43 @@ function! s:Marker.nextMarker(snippet,index)
 endfunction
 
 function! s:Marker.removeMarker(snippet, i, marker)
+    " length of the marker start
+    let startlen = strlen(s:start) + strlen(a:i) + 1
+    let endlen = strlen(s:end)
+
     let start = a:marker[0]
-    let startOfBody = start + strlen(s:start) + strlen(a:i) + 1
     let end = a:marker[1] - 1
+    let startOfBody = start + startlen
+    let bodyLen = end-startOfBody
     let snip = strpart(a:snippet, 0, start) .
-                \ strpart(a:snippet, startOfBody, end-startOfBody) .
-                \ strpart(a:snippet, end+strlen(s:end))
+                \ strpart(a:snippet, startOfBody, bodyLen) .
+                \ strpart(a:snippet, end+endlen)
+
+    
+    " add tab stop to our list
+    call s:Marker.addTabstop(a:i, startOfBody, bodyLen)
 
     return snip
+endfunction
+
+function! s:Marker.addTabstop(i, start, len)
+    let s:Marker.tabstops[a:i] = [a:start, a:len]
+    
+    " update the tabstops
+    call s:Marker.updateTabstops(a:i, a:start)
+endfunction
+
+function! s:Marker.updateTabstops(i, start)
+    " get size of tabstop marker surrounding
+    let len = strlen(s:start) + strlen(a:i) + 1 + strlen(s:end)
+
+    for marker in keys(s:Marker.tabstops)
+        " check if start position is greater the last modified
+        " snippet and adjust it's position if so
+        if s:Marker.tabstops[marker][0] > a:start
+            let s:Marker.tabstops[marker][0] -= len
+        endif
+    endfor
 endfunction
 
 "removes a set of markers from the current cursor postion
