@@ -124,15 +124,15 @@ endfunction
 "jump the cursor to the start of the next marker and return an array of the
 "for [start_column, end_column], where start_column points to the start of
 "<+ and end_column points to the start of +> {{{1
-function! s:nextMarker(snippet,index)
-    let start = match(a:snippet, '\V'.s:start.a:index.'\.\{-\}'.s:end)
-    if start == -1
+function! s:nextMarker()
+    let start = searchpos('\V'.s:start.'\.\{-\}'.s:end, 'c')[1]
+    if start == 0
         throw "NERDSnippets.NoMarkersFoundError"
     endif
 
-    let l = a:snippet
+    let l = getline(".")
     let balance = 0
-    let i = start
+    let i = start-1
     while i < strlen(l)
         if strpart(l, i, strlen(s:start)) == s:start
             let balance += 1
@@ -151,22 +151,6 @@ function! s:nextMarker(snippet,index)
     throw "NERDSnippets.MalformedMarkersError"
 endfunction
 " }}}1
-
-function! s:getAllMarker(snippet)
-    let i = 1
-    let markers = []
-    while i
-        try
-            let marker = s:nextMarker(a:snippet, i)
-            call add(markers, marker)
-            let i += 1
-        catch /NERDSnippets.NoMarkersFoundError/
-            break
-        endtry
-    endwhile
-
-    return markers
-endfunction
 
 "asks the user to select a snippet from the given list
 "
@@ -229,17 +213,6 @@ function! s:snippetFor(keyword)
 endfunction
 "}}}1
 
-function! s:removeMarker(snippet, i, marker)
-    let start = a:marker[0]
-    let startOfBody = start + strlen(s:start) + strlen(a:i) + 1
-    let end = a:marker[1]
-    let snip = strpart(a:snippet, 0, start) .
-                \ strpart(a:snippet, startOfBody, end-startOfBody) .
-                \ strpart(a:snippet, end+strlen(s:end))
-
-    return snip
-endfunction
-
 "removes a set of markers from the current cursor postion
 "
 "i.e. turn this
@@ -248,25 +221,24 @@ endfunction
 "into this
 "
 "  foo foobar foo {{{1
-function! s:removeMarkers(snippet)
-    " first remove the markers that aren't triggers
-    " like $1 $2 etc ...
-    let snip = substitute(a:snippet, '$\d', '', 'g')
+function! s:removeMarkers()
+    try
+        let marker = s:nextMarker()
+        if strpart(getline('.'), marker[0]-1, strlen(s:start)) == s:start
 
-    let markers = s:getAllMarker(snip)
-    let i = 1
-    let markers = []
-    while i
-        try
-            let marker = s:nextMarker(snip, i)
-            let snip = s:removeMarker(snip, i, marker)
-            let i += 1
-        catch /NERDSnippets.NoMarkersFoundError/
-            break
-        endtry
-    endwhile
-
-    return split(snip, "\n", 1)
+            "remove them
+            let line = getline(".")
+            let start = marker[0] - 1
+            let startOfBody = start + strlen(s:start)
+            let end = marker[1] - 1
+            let line = strpart(line, 0, start) .
+                        \ strpart(line, startOfBody, end - startOfBody) .
+                        \ strpart(line, end+strlen(s:end))
+            call setline(line("."), line)
+            return 1
+        endif
+    catch /NERDSnippets.NoMarkersFoundError/
+    endtry
 endfunction
 "}}}1
 
