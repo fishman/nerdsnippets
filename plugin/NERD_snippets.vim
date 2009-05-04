@@ -389,7 +389,7 @@ endfunction
 
 "jump the cursor to the start of the next marker and return an array of the
 "for [start_column, end_column], where start_column points to the start of
-"<+ and end_column points to the start of +> {{{1
+"<+ and end_column points to the start of +>
 function! s:Marker.nextMarker(line,index)
     let start = match(a:line, '\V'.s:start.a:index.'\.\{-\}'.s:end)
     if start == -1
@@ -465,7 +465,7 @@ endfunction
 
 "into this
 "
-"  foo foobar foo {{{1
+"  foo foobar foo 
 function! s:Marker.removeMarkers(snippet)
     let snip = a:snippet
 
@@ -507,6 +507,18 @@ function! s:Marker.removePlaceholder(snippet)
     endfor
     return snip
 endfunction
+
+function! s:Marker.addPlaceholder(lnum, i, start, len)
+    let s:Marker.tabstops[a:i] = { 'line': a:lnum+1, 'col': a:start, 'end':a:len }
+    
+    call s:Marker.addRevlookup(a:lnum, a:i, 1)
+    " get size of tabstop marker surrounding
+    let len = strlen(s:start) + strlen(a:i) + 1 + strlen(s:end)
+
+    " update the tabstops
+    call s:Marker.updateTabstops(a:i, a:start, len)
+endfunction
+
 
 " can be tabstop or placeholder
 " specified by istab
