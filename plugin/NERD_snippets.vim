@@ -37,7 +37,6 @@ let s:end = g:NERDSnippets_marker_end
 
 let s:in_windows = has("win16") ||  has("win32") || has("win64")
 
-let s:topOfSnippet = -1
 let s:appendTab = 1
 let s:snippets = {}
 let s:snippets['_'] = {}
@@ -96,7 +95,6 @@ function! NERDSnippets_ExpandSnippet()
     if snippet != ''
         let s:snippet = snippet
         let s:appendTab = 0
-        let s:topOfSnippet = line('.')
         let snippet = s:ExpandSnippet(snippet_name)
     else
         let s:appendTab = 1
@@ -111,10 +109,6 @@ endfunction
 function! NERDSnippets_SwitchRegion(allowAppend)
     if exists('s:snipPos')
         return s:JumpTabStop()
-    endif
-    if s:topOfSnippet != -1
-        call cursor(s:topOfSnippet,1)
-        let s:topOfSnippet = -1
     endif
 
     try
