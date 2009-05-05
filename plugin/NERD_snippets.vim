@@ -2,6 +2,7 @@
 " File:        NERDSnippets.vim
 " Description: vim global plugin for snippets that own hard
 " Maintainer:  Martin Grenfell <martin_grenfell at msn dot com>
+"              Reza Jelveh
 " Last Change: 18 October, 2008
 " License:     This program is free software. It comes without any warranty,
 "              to the extent permitted by applicable law. You can redistribute
