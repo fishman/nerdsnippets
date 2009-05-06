@@ -326,12 +326,16 @@ endfunction
 function! s:ParseSnippet(trigger, snippet)
     let line = line(".")
 
+    let snip = a:snippet
+
+    " eval `` expressions
+    let snip = s:EvalSnippet(snip)
     " add indent to each line of the snippet
-    let snippet = s:AddIndent(a:trigger, a:snippet)
+    let snippet = s:AddIndent(a:trigger, snip)
 
     " for the mark generation we use the actual snippet
     " not yet split
-    let markers = s:Marker.getAllMarker(a:snippet)
+    let markers = s:Marker.getAllMarker(snip)
     let snippet = s:Marker.removeMarkers(snippet)
     let snippet = s:Marker.removePlaceholder(snippet)
 
@@ -342,6 +346,24 @@ function! s:ParseSnippet(trigger, snippet)
     call cursor(s:Marker.tabstops[4]['line'], s:Marker.tabstops[4]['col']-1)
     return ''
 endfunction
+
+function! s:EvalSnippet(snippet)
+    let snippet = a:snippet
+
+    " Evaluate eval (`...`) expressions.
+    " Using a loop here instead of a regex fixes a bug with nested "\=".
+    if stridx(snippet, '`') != -1
+        wh match(snippet, '`.\{-}`') != -1
+            let snippet = substitute(snippet, '`.\{-}`',
+                        \ substitute(eval(matchstr(snippet, '`\zs.\{-}\ze`')),
+                        \ "\n\\%$", '', ''), '')
+        endw
+        let snippet = substitute(snippet, "\r", "\n", 'g')
+    endif
+
+    return snippet
+endfunction
+
 
 function! s:AddIndent(trigger, snippet)
     " turn the snippets into a list of newline seperated items
