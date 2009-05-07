@@ -117,7 +117,7 @@ function! NERDSnippets_SwitchRegion(allowAppend)
             return "\<tab>"
         endif
     else
-        return "\<ESC>l"
+        return "\<ESC>l\<tab>"
 	endif
 endfunction
 "}}}1
