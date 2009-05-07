@@ -140,7 +140,7 @@ function! NERDSnippets_SwitchRegion(allowAppend)
         endif
         "we were called from normal mode so return to normal and move the
         "cursor forward again
-        return "\<ESC>l"
+        return "\<ESC>l\<tab>"
     endtry
 
 endfunction
