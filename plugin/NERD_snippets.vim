@@ -433,7 +433,7 @@ fun s:ExpandSnippet(trigger)
     else
         let afterCursor = ''
         " For some reason the cursor needs to move one right after this
-        if line != '' && col == 1 && &ve !~ 'all\|onemore'
+        if line != '' && col == 1 && &ve != 'all' && &ve != 'onemore'
             let col += 1
         endif
     endif
@@ -587,6 +587,7 @@ fun s:UpdateTabStops(...)
 	" Update the line number of all proceeding tab stops if <cr> has
 	" been inserted.
 	if changeLine != 0
+		let changeLine -= 1
 		for pos in s:snipPos[(s:curPos + 1):]
 			if pos[0] >= lnum
 				if pos[0] == lnum
