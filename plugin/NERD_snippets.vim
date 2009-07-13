@@ -636,7 +636,7 @@ fun s:JumpTabStop()
 	if s:curPos == s:snipLen
 		let sMode = s:endSnip == s:snipPos[s:curPos-1][1]+s:snipPos[s:curPos-1][2]
 		call s:RemoveSnippet()
-		return sMode ? NERDSnippets_SwitchRegion(1) : TriggerSnippet()
+		return NERDSnippets_SwitchRegion(1)
 	endif
 
 	call cursor(s:snipPos[s:curPos][0], s:snipPos[s:curPos][1])
